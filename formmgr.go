@@ -10,33 +10,33 @@ import (
 	"google.golang.org/grpc"
 )
 
-type DumpFormMgr struct {
+type FormMgr struct {
 	header.UnimplementedFormMgrServer
 
 	lock  *sync.Mutex
 	formM map[string]*header.Form
 }
 
-func (me *DumpFormMgr) GetForm(ctx context.Context, p *header.Id) (*header.Response, error) {
+func (me *FormMgr) GetForm(ctx context.Context, p *header.Id) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	return &header.Response{Form: me.formM[p.GetId()]}, nil
 }
 
-func (me *DumpFormMgr) UpdateForm(ctx context.Context, p *header.Form) (*header.Response, error) {
+func (me *FormMgr) UpdateForm(ctx context.Context, p *header.Form) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	me.formM[p.GetId()] = p
 	return &header.Response{Form: p}, nil
 }
 
-func (me *DumpFormMgr) GenerateFormLink(ctx context.Context, p *header.GenerateFormTokenRequest) (*header.Id, error) {
+func (me *FormMgr) GenerateFormLink(ctx context.Context, p *header.GenerateFormTokenRequest) (*header.Id, error) {
 	return nil, nil
 }
 
-func NewDumpFormMgr() *DumpFormMgr {
+func NewFormMgr() *FormMgr {
 	grpcServer := grpc.NewServer()
-	mgr := &DumpFormMgr{lock: &sync.Mutex{}, formM: map[string]*header.Form{}}
+	mgr := &FormMgr{lock: &sync.Mutex{}, formM: map[string]*header.Form{}}
 	header.RegisterFormMgrServer(grpcServer, mgr)
 	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", 18239))
 	if err != nil {

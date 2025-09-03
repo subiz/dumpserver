@@ -15,68 +15,68 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type DummyAccountMgr struct {
+type AccountMgr struct {
 	header.UnimplementedAccountMgrServer
 	session *gocql.Session
 }
 
-func (mgr *DummyAccountMgr) InviteEmails(ctx context.Context, req *header.InviteRequest) (*header.Empty, error) {
+func (mgr *AccountMgr) InviteEmails(ctx context.Context, req *header.InviteRequest) (*header.Empty, error) {
 	return &header.Empty{}, nil
 }
 
-func (mgr *DummyAccountMgr) GetInviteLink(ctx context.Context, req *header.Id) (*header.Id, error) {
+func (mgr *AccountMgr) GetInviteLink(ctx context.Context, req *header.Id) (*header.Id, error) {
 	return &header.Id{}, nil
 }
 
-func (mgr *DummyAccountMgr) RegenerateInviteLink(ctx context.Context, req *header.Id) (*header.Id, error) {
+func (mgr *AccountMgr) RegenerateInviteLink(ctx context.Context, req *header.Id) (*header.Id, error) {
 	return &header.Id{}, nil
 }
 
-func (mgr *DummyAccountMgr) CheckInviteLink(ctx context.Context, req *header.Id) (*header.InvitationLink, error) {
+func (mgr *AccountMgr) CheckInviteLink(ctx context.Context, req *header.Id) (*header.InvitationLink, error) {
 	return &header.InvitationLink{}, nil
 }
 
-func (mgr *DummyAccountMgr) JoinAccount(ctx context.Context, req *header.JoinAccountRequest) (*header.Response, error) {
+func (mgr *AccountMgr) JoinAccount(ctx context.Context, req *header.JoinAccountRequest) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) RequestOTP(ctx context.Context, req *header.Id) (*header.Empty, error) {
+func (mgr *AccountMgr) RequestOTP(ctx context.Context, req *header.Id) (*header.Empty, error) {
 	return &header.Empty{}, nil
 }
 
-func (mgr *DummyAccountMgr) LoginUsingOTP(ctx context.Context, req *header.LoginRequest) (*header.Response, error) {
+func (mgr *AccountMgr) LoginUsingOTP(ctx context.Context, req *header.LoginRequest) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) CheckEmailUsed(ctx context.Context, req *header.Id) (*header.Response, error) {
+func (mgr *AccountMgr) CheckEmailUsed(ctx context.Context, req *header.Id) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) UpdateAgentProfile(ctx context.Context, req *header.AgentProfile) (*header.Response, error) {
+func (mgr *AccountMgr) UpdateAgentProfile(ctx context.Context, req *header.AgentProfile) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) GetAgentProfile(ctx context.Context, req *header.Id) (*header.Response, error) {
+func (mgr *AccountMgr) GetAgentProfile(ctx context.Context, req *header.Id) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) ListAgentProfileAccounts(ctx context.Context, req *header.Id) (*header.Response, error) {
+func (mgr *AccountMgr) ListAgentProfileAccounts(ctx context.Context, req *header.Id) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) Login(ctx context.Context, req *header.LoginRequest) (*header.Response, error) {
+func (mgr *AccountMgr) Login(ctx context.Context, req *header.LoginRequest) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) OldLogin(ctx context.Context, req *header.LoginRequest) (*header.Response, error) {
+func (mgr *AccountMgr) OldLogin(ctx context.Context, req *header.LoginRequest) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (mgr *DummyAccountMgr) CreateGroup(ctx context.Context, req *header.AgentGroup) (*header.AgentGroup, error) {
+func (mgr *AccountMgr) CreateGroup(ctx context.Context, req *header.AgentGroup) (*header.AgentGroup, error) {
 	return &header.AgentGroup{}, nil
 }
 
-func (mgr *DummyAccountMgr) ListAgents(ctx context.Context, req *header.Id) (*header.Response, error) {
+func (mgr *AccountMgr) ListAgents(ctx context.Context, req *header.Id) (*header.Response, error) {
 	agent := &apb.Agent{
 		AccountId: &req.AccountId,
 		Email:     conv.S("agent@subiz.com"),
@@ -86,16 +86,16 @@ func (mgr *DummyAccountMgr) ListAgents(ctx context.Context, req *header.Id) (*he
 	return &header.Response{Agents: []*apb.Agent{agent}, Total: 1}, nil
 }
 
-func (mgr *DummyAccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Account, error) {
+func (mgr *AccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Account, error) {
 	return &apb.Account{Name: conv.S("SubizTest"), Id: conv.S(req.GetAccountId()), Currency: conv.S("VND"), State: conv.S("activated")}, nil
 }
 
-func (mgr *DummyAccountMgr) ListActiveAccountIds(ctx context.Context, req *header.Id) (*header.Response, error) {
+func (mgr *AccountMgr) ListActiveAccountIds(ctx context.Context, req *header.Id) (*header.Response, error) {
 	return &header.Response{Ids: []string{"acpxkgumifuoofoosble"}}, nil
 }
 
 // UpsertAccount update account
-func (mgr *DummyAccountMgr) UpsertAccount(acc *apb.Account) {
+func (mgr *AccountMgr) UpsertAccount(acc *apb.Account) {
 	bh, _ := proto.Marshal(acc.GetBusinessHours())
 	ls, _ := proto.Marshal(acc.GetLeadSetting())
 	uas, _ := proto.Marshal(acc.GetUserAttributeSetting())
@@ -107,7 +107,7 @@ func (mgr *DummyAccountMgr) UpsertAccount(acc *apb.Account) {
 	}
 }
 
-func (me *DummyAccountMgr) NewID(ctx context.Context, p *header.Id) (*header.Id, error) {
+func (me *AccountMgr) NewID(ctx context.Context, p *header.Id) (*header.Id, error) {
 	accid, scope := p.GetAccountId(), p.GetId()
 	unlock := header.KLock("id#" + accid + "." + scope)
 	var id int64
@@ -142,8 +142,8 @@ func (me *DummyAccountMgr) NewID(ctx context.Context, p *header.Id) (*header.Id,
 	return &header.Id{Id: strconv.Itoa(int(id))}, nil
 }
 
-func NewDummyAccountMgr(port int) *DummyAccountMgr {
-	mgr := &DummyAccountMgr{}
+func NewAccountMgr(port int) *AccountMgr {
+	mgr := &AccountMgr{}
 	mgr.session = header.ConnectDB([]string{"db-0"}, "account")
 	grpcServer := header.NewShardServer2(port, 1)
 	header.RegisterAccountMgrServer(grpcServer, mgr)

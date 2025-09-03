@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type DumpConvoMgr struct {
+type ConvoMgr struct {
 	header.UnimplementedConversationMgrServer
 
 	lock     *sync.Mutex
@@ -25,11 +25,11 @@ type DumpConvoMgr struct {
 	OnEvent  func(ev *header.Event)
 }
 
-func (me *DumpConvoMgr) OnAIAgentUpdated(ctx context.Context, req *header.AIAgent) (*header.Response, error) {
+func (me *ConvoMgr) OnAIAgentUpdated(ctx context.Context, req *header.AIAgent) (*header.Response, error) {
 	return &header.Response{}, nil
 }
 
-func (me *DumpConvoMgr) ListEvents(ctx context.Context, req *header.ListConversationEventsRequest) (*header.Events, error) {
+func (me *ConvoMgr) ListEvents(ctx context.Context, req *header.ListConversationEventsRequest) (*header.Events, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
@@ -57,7 +57,7 @@ func (me *DumpConvoMgr) ListEvents(ctx context.Context, req *header.ListConversa
 	return &header.Events{Events: events}, nil
 }
 
-func (me *DumpConvoMgr) WaitForMessage(accid, convoid, lastid string, timeoutms int64) *header.Event {
+func (me *ConvoMgr) WaitForMessage(accid, convoid, lastid string, timeoutms int64) *header.Event {
 	if timeoutms == 0 {
 		timeoutms = 30_000 // 30 sec
 	}
@@ -84,11 +84,11 @@ func (me *DumpConvoMgr) WaitForMessage(accid, convoid, lastid string, timeoutms 
 	return nil
 }
 
-func (me *DumpConvoMgr) AssignRule(ctx context.Context, req *header.AssignRequest) (*header.RouteResult, error) {
+func (me *ConvoMgr) AssignRule(ctx context.Context, req *header.AssignRequest) (*header.RouteResult, error) {
 	return &header.RouteResult{}, nil
 }
 
-func (me *DumpConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.Event, error) {
+func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.Event, error) {
 	accid := e.GetAccountId()
 	convoid := e.GetData().GetMessage().GetConversationId()
 	if convoid == "" {
@@ -208,7 +208,7 @@ func (me *DumpConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*head
 	return e, nil
 }
 
-func (me *DumpConvoMgr) GetFullConversation(ctx context.Context, id *header.Id) (*header.Response, error) {
+func (me *ConvoMgr) GetFullConversation(ctx context.Context, id *header.Id) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
@@ -222,7 +222,7 @@ func (me *DumpConvoMgr) GetFullConversation(ctx context.Context, id *header.Id) 
 	return &header.Response{Conversation: convos[id.Id]}, nil
 }
 
-func (me *DumpConvoMgr) GetConversation(ctx context.Context, id *header.Id) (*header.Conversation, error) {
+func (me *ConvoMgr) GetConversation(ctx context.Context, id *header.Id) (*header.Conversation, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
@@ -236,7 +236,7 @@ func (me *DumpConvoMgr) GetConversation(ctx context.Context, id *header.Id) (*he
 	return convos[id.Id], nil
 }
 
-func (me *DumpConvoMgr) UpdateConversationInfo(ctx context.Context, convo *header.Conversation) (*header.Conversation, error) {
+func (me *ConvoMgr) UpdateConversationInfo(ctx context.Context, convo *header.Conversation) (*header.Conversation, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
@@ -251,7 +251,7 @@ func (me *DumpConvoMgr) UpdateConversationInfo(ctx context.Context, convo *heade
 	return convo, nil
 }
 
-func (me *DumpConvoMgr) UpdateConversationMember(ctx context.Context, req *header.ConversationMember) (*header.Response, error) {
+func (me *ConvoMgr) UpdateConversationMember(ctx context.Context, req *header.ConversationMember) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
@@ -294,9 +294,9 @@ func (me *DumpConvoMgr) UpdateConversationMember(ctx context.Context, req *heade
 	return &header.Response{Event: cloneE}, nil
 }
 
-func NewDumpConvoMgr(port int) *DumpConvoMgr {
+func NewConvoMgr(port int) *ConvoMgr {
 	grpcServer := grpc.NewServer()
-	conmgr := &DumpConvoMgr{
+	conmgr := &ConvoMgr{
 		lock:     &sync.Mutex{},
 		lastId:   time.Now().UnixMilli(),
 		messages: map[string]map[string]map[string]*header.Event{}, //

@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type DumpProderMgr struct {
+type ProderMgr struct {
 	header.UnimplementedProderServer
 	lock      *sync.Mutex
 	productM  map[string]*header.Product  // product id -> product
@@ -25,9 +25,9 @@ type DumpProderMgr struct {
 	responseM map[string][]*header.Response
 }
 
-func NewDumpProderMgr() *DumpProderMgr {
+func NewProderMgr() *ProderMgr {
 	grpcServer := grpc.NewServer()
-	mgr := &DumpProderMgr{
+	mgr := &ProderMgr{
 		lock:      &sync.Mutex{},
 		productM:  map[string]*header.Product{},
 		discountM: map[string]*header.Discount{},
@@ -47,7 +47,7 @@ func NewDumpProderMgr() *DumpProderMgr {
 	return mgr
 }
 
-func (me *DumpProderMgr) ReadProduct(ctx context.Context, p *header.Product) (*header.Product, error) {
+func (me *ProderMgr) ReadProduct(ctx context.Context, p *header.Product) (*header.Product, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	product := me.productM[p.GetId()]
@@ -57,7 +57,7 @@ func (me *DumpProderMgr) ReadProduct(ctx context.Context, p *header.Product) (*h
 	return product, nil
 }
 
-func (me *DumpProderMgr) CreateDiscount(ctx context.Context, p *header.Discount) (*header.Response, error) {
+func (me *ProderMgr) CreateDiscount(ctx context.Context, p *header.Discount) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	p = proto.Clone(p).(*header.Discount)
@@ -69,7 +69,7 @@ func (me *DumpProderMgr) CreateDiscount(ctx context.Context, p *header.Discount)
 	return &header.Response{Discount: p}, nil
 }
 
-func (me *DumpProderMgr) UpdateDiscount(ctx context.Context, p *header.Discount) (*header.Response, error) {
+func (me *ProderMgr) UpdateDiscount(ctx context.Context, p *header.Discount) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	p = proto.Clone(p).(*header.Discount)
@@ -81,7 +81,7 @@ func (me *DumpProderMgr) UpdateDiscount(ctx context.Context, p *header.Discount)
 	return &header.Response{Discount: p}, nil
 }
 
-func (me *DumpProderMgr) GetDiscount(ctx context.Context, p *header.Id) (*header.Response, error) {
+func (me *ProderMgr) GetDiscount(ctx context.Context, p *header.Id) (*header.Response, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	discount := me.discountM[p.GetId()]
@@ -91,7 +91,7 @@ func (me *DumpProderMgr) GetDiscount(ctx context.Context, p *header.Id) (*header
 	return &header.Response{Discount: discount}, nil
 }
 
-func (me *DumpProderMgr) FilterProduct2(ctx context.Context, p *header.FilterProductRequest) (*header.Response, error) {
+func (me *ProderMgr) FilterProduct2(ctx context.Context, p *header.FilterProductRequest) (*header.Response, error) {
 	start := time.Now()
 	for time.Since(start) < 10*time.Second {
 		me.lock.Lock()
@@ -110,7 +110,7 @@ func (me *DumpProderMgr) FilterProduct2(ctx context.Context, p *header.FilterPro
 	return nil, log.ETimeout()
 }
 
-func (me *DumpProderMgr) UpdateProduct(ctx context.Context, p *header.Product) (*header.Product, error) {
+func (me *ProderMgr) UpdateProduct(ctx context.Context, p *header.Product) (*header.Product, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	p = proto.Clone(p).(*header.Product)
@@ -123,14 +123,14 @@ func (me *DumpProderMgr) UpdateProduct(ctx context.Context, p *header.Product) (
 	return p, nil
 }
 
-func (me *DumpProderMgr) DeleteProduct(ctx context.Context, p *header.Id) (*header.Empty, error) {
+func (me *ProderMgr) DeleteProduct(ctx context.Context, p *header.Id) (*header.Empty, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	delete(me.productM, p.GetId())
 	return &header.Empty{}, nil
 }
 
-func (me *DumpProderMgr) ListAllProductIds(ctx context.Context, req *header.ProductsRequest) (*header.Ids, error) {
+func (me *ProderMgr) ListAllProductIds(ctx context.Context, req *header.ProductsRequest) (*header.Ids, error) {
 	out := []*header.Product{}
 	for _, p := range me.productM {
 		out = append(out, p)
@@ -154,7 +154,7 @@ func (me *DumpProderMgr) ListAllProductIds(ctx context.Context, req *header.Prod
 	return &header.Ids{LastModifieds: modifieds, Ids: ids, ETag: etag}, nil
 }
 
-func (me *DumpProderMgr) ListAllProductDiscountIds(ctx context.Context, req *header.Id) (*header.Ids, error) {
+func (me *ProderMgr) ListAllProductDiscountIds(ctx context.Context, req *header.Id) (*header.Ids, error) {
 	out := []*header.Discount{}
 	for _, p := range me.discountM {
 		out = append(out, p)

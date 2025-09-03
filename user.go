@@ -12,16 +12,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type DumpUserMgr struct {
+type UserMgr struct {
 	header.UnimplementedUserMgrServer
 	lock    *sync.Mutex
 	userM   map[string]*header.User // accid -> convo-id -> evid -> event
 	session *gocql.Session
 }
 
-func NewDumpUserMgr(port int, dbip string) *DumpUserMgr {
+func NewUserMgr(port int, dbip string) *UserMgr {
 	grpcServer := grpc.NewServer()
-	mgr := &DumpUserMgr{
+	mgr := &UserMgr{
 		lock:  &sync.Mutex{},
 		userM: map[string]*header.User{},
 	}
@@ -40,7 +40,7 @@ func NewDumpUserMgr(port int, dbip string) *DumpUserMgr {
 	return mgr
 }
 
-func (me *DumpUserMgr) ReadUser(ctx context.Context, p *header.Id) (*header.User, error) {
+func (me *UserMgr) ReadUser(ctx context.Context, p *header.Id) (*header.User, error) {
 
 	me.lock.Lock()
 	defer me.lock.Unlock()
@@ -51,7 +51,7 @@ func (me *DumpUserMgr) ReadUser(ctx context.Context, p *header.Id) (*header.User
 	return user, nil
 }
 
-func (me *DumpUserMgr) UpdateUser(ctx context.Context, u *header.User) (*header.User, error) {
+func (me *UserMgr) UpdateUser(ctx context.Context, u *header.User) (*header.User, error) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	user := me.userM[u.Id]
@@ -73,7 +73,7 @@ func (me *DumpUserMgr) UpdateUser(ctx context.Context, u *header.User) (*header.
 	return u, nil
 }
 
-func (me *DumpUserMgr) Reset() {
+func (me *UserMgr) Reset() {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
@@ -85,7 +85,7 @@ func (me *DumpUserMgr) Reset() {
 	}
 }
 
-func (me *DumpUserMgr) AddUserAttributeDef(df *header.AttributeDefinition) {
+func (me *UserMgr) AddUserAttributeDef(df *header.AttributeDefinition) {
 	me.lock.Lock()
 	defer me.lock.Unlock()
 
