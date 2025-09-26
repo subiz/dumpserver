@@ -139,7 +139,9 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 		}
 
 		if theconvo == nil {
-			convoid = idgen.NewConversationID()
+			if convoid == "" {
+				convoid = idgen.NewConversationID()
+			}
 			theconvo = &header.Conversation{Id: convoid, Touchpoint: e.Touchpoint}
 			convos[convoid] = theconvo
 		}
@@ -160,6 +162,26 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 	theconvo = proto.Clone(theconvo).(*header.Conversation)
 	// theconvo.LastEvent = e
 	if e.GetType() == "message_sent" {
+
+		// add member if not exist
+		var themem *header.ConversationMember
+		for _, mem := range theconvo.Members {
+			if mem.GetId() == e.GetBy().GetId() {
+				themem = mem
+				break
+			}
+		}
+
+		if themem == nil {
+			themem = &header.ConversationMember{
+				Id:   e.By.Id,
+				Type: e.By.Type,
+			}
+			theconvo.Members = append(theconvo.Members, themem)
+		}
+
+		themem.Membership = "active"
+		themem.LastSent = e.Created
 		theconvo.LastMessageSent = e
 	}
 
