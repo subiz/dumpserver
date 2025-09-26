@@ -317,23 +317,26 @@ func (me *ConvoMgr) UpdateConversationMember(ctx context.Context, req *header.Co
 }
 
 func NewConvoMgr(port int) *ConvoMgr {
-	grpcServer := grpc.NewServer()
 	conmgr := &ConvoMgr{
 		lock:     &sync.Mutex{},
 		lastId:   time.Now().UnixMilli(),
 		messages: map[string]map[string]map[string]*header.Event{}, //
 		convos:   map[string]map[string]*header.Conversation{},
 	}
-	header.RegisterConversationMgrServer(grpcServer, conmgr)
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-	if err != nil {
-		panic(err)
-	}
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
+	if port > 0 {
+		grpcServer := grpc.NewServer()
+		header.RegisterConversationMgrServer(grpcServer, conmgr)
+
+		lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+		if err != nil {
 			panic(err)
 		}
-	}()
+		go func() {
+			if err := grpcServer.Serve(lis); err != nil {
+				panic(err)
+			}
+		}()
+	}
 	return conmgr
 }

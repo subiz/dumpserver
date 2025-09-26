@@ -20,23 +20,28 @@ type UserMgr struct {
 }
 
 func NewUserMgr(port int, dbip string) *UserMgr {
-	grpcServer := grpc.NewServer()
 	mgr := &UserMgr{
 		lock:  &sync.Mutex{},
 		userM: map[string]*header.User{},
 	}
-	header.RegisterUserMgrServer(grpcServer, mgr)
-	mgr.session = header.ConnectDB([]string{dbip}, "user")
 
-	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
-	if err != nil {
-		panic(err)
+	if dbip != "" {
+		mgr.session = header.ConnectDB([]string{dbip}, "user")
 	}
-	go func() {
-		if err := grpcServer.Serve(lis); err != nil {
+	if port > 0 {
+		grpcServer := grpc.NewServer()
+		header.RegisterUserMgrServer(grpcServer, mgr)
+
+		lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+		if err != nil {
 			panic(err)
 		}
-	}()
+		go func() {
+			if err := grpcServer.Serve(lis); err != nil {
+				panic(err)
+			}
+		}()
+	}
 	return mgr
 }
 
