@@ -226,7 +226,9 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 	if cloneE.Ref == nil {
 		cloneE.Ref = &header.Data{Conversation: theconvo}
 	}
-	go me.OnEvent(cloneE)
+	if me.OnEvent != nil {
+		go me.OnEvent(cloneE)
+	}
 	return e, nil
 }
 
