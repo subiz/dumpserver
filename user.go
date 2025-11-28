@@ -4,25 +4,32 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/gocql/gocql"
 	"github.com/subiz/header"
+	cpb "github.com/subiz/header/common"
+	"github.com/subiz/idgen"
+	"github.com/subiz/log"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/proto"
 )
 
 type UserMgr struct {
 	header.UnimplementedUserMgrServer
-	lock    *sync.Mutex
-	userM   map[string]*header.User // accid -> convo-id -> evid -> event
-	session *gocql.Session
+	lock     *sync.Mutex
+	userM    map[string]*header.User // accid + uid -> user
+	profileM map[string]string       // accid -> convo-id -> evid -> userid
+	session  *gocql.Session
 }
 
 func NewUserMgr(port int, dbip string) *UserMgr {
 	mgr := &UserMgr{
-		lock:  &sync.Mutex{},
-		userM: map[string]*header.User{},
+		lock:     &sync.Mutex{},
+		userM:    map[string]*header.User{},
+		profileM: map[string]string{},
 	}
 
 	if dbip != "" {
@@ -46,7 +53,6 @@ func NewUserMgr(port int, dbip string) *UserMgr {
 }
 
 func (me *UserMgr) ReadUser(ctx context.Context, p *header.Id) (*header.User, error) {
-
 	me.lock.Lock()
 	defer me.lock.Unlock()
 	user := me.userM[p.GetId()]
@@ -76,6 +82,75 @@ func (me *UserMgr) UpdateUser(ctx context.Context, u *header.User) (*header.User
 	}
 	me.userM[u.GetId()] = u
 	return u, nil
+}
+
+func (me *UserMgr) ReadOrCreateUserByContactProfile(ctx context.Context, p *header.Id) (*header.User, error) {
+	me.lock.Lock()
+	defer me.lock.Unlock()
+
+	user := me.userM[p.GetId()]
+	if user == nil {
+		return &header.User{Id: p.Id}, nil
+	}
+	return user, nil
+
+	cred := header.FromGrpcCtx(ctx).GetCredential()
+	accid, id := cred.GetAccountId(), p.GetId()
+	if accid == "" {
+		accid = p.AccountId
+	}
+	if !idgen.IsAccountID(accid) {
+		return nil, log.EMissingId("account")
+	}
+	if (p.Channel == "subiz" && p.ChannelSource == "web") || p.Channel == "" {
+		if id == "" {
+			id = p.ProfileId
+		}
+		if id == "" {
+			return nil, log.EMissingId("user")
+		}
+		return me.userM[p.GetId()], nil
+	}
+
+	if p.Channel != "" && p.ChannelSource != "" && p.ProfileId != "" && p.Id == "" {
+		channel, source, profileid := p.Channel, p.ChannelSource, p.ProfileId
+		// reading old contact profile
+		if channel == "email" && source == "email" {
+			profileid = header.EmailAddress(profileid)
+		}
+
+		if channel == "call" && source == "call" {
+			profileid = header.PhoneNumber(profileid)
+		}
+		profileid = strings.TrimSpace(profileid)
+
+		key := accid + "$$" + channel + "$$" + source + "$$" + profileid
+		old := me.profileM[key]
+		if old != "" {
+			return me.userM[old], nil
+		}
+
+		// special case for subiz only, profile.id = user.id (why???)
+		if channel == "subiz" && (source == "web" || source == "") {
+			return me.userM[profileid], nil
+		}
+
+		// must create new user
+		u := &header.User{}
+		u.Id = idgen.NewUserID()
+		u.AccountId = accid
+		now := time.Now()
+		u.Created = now.UnixMilli()
+		u.Updated = now.UnixMilli()
+		u.Attributes = []*header.Attribute{{Key: "created", Datetime: now.Format(time.RFC3339), ByType: cpb.Type_subiz.String(), Modified: time.Now().UnixMilli()}}
+		u.ProfileId = profileid
+		u.Channel = channel
+		u.ChannelSource = source
+		me.profileM[key] = u.Id
+		me.userM[u.GetId()] = u
+		return u, nil
+	}
+	return nil, log.EMissingId("user")
 }
 
 func (me *UserMgr) Reset() {
