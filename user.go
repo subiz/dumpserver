@@ -94,8 +94,7 @@ func (me *UserMgr) ReadOrCreateUserByContactProfile(ctx context.Context, p *head
 	}
 	return user, nil
 
-	cred := header.FromGrpcCtx(ctx).GetCredential()
-	accid, id := cred.GetAccountId(), p.GetId()
+	accid, id := p.GetAccountId(), p.GetId()
 	if accid == "" {
 		accid = p.AccountId
 	}
