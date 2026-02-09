@@ -221,7 +221,14 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 	if e.Data != nil && e.Data.Message != nil {
 		e.Data.Message.ConversationId = convoid
 	}
-	convomsgs[e.Id] = e
+
+	if e.GetType() == "message_pong" {
+		me.handlePong(accid, convoid, e.GetData().GetMessage().GetId(), e.GetData().GetMessage().GetPongs())
+	}
+
+	if e.GetType() == "message_sent" {
+		convomsgs[e.Id] = e
+	}
 	cloneE := proto.Clone(e).(*header.Event)
 	if cloneE.Ref == nil {
 		cloneE.Ref = &header.Data{Conversation: theconvo}
@@ -230,6 +237,39 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 		go me.OnEvent(cloneE)
 	}
 	return e, nil
+}
+
+func (me *ConvoMgr) handlePong(accid, convoid, msgid string, newpongs []*header.MessagePong) {
+	convomessages := me.messages[accid]
+	if convomessages == nil {
+		panic(1)
+		return
+	}
+
+	messages := convomessages[convoid]
+	if messages == nil {
+		return
+	}
+
+	msg := messages[msgid].GetData().GetMessage()
+	if msg == nil {
+		return
+	}
+	msg.Pongs = append(msg.Pongs, newpongs...)
+	// group by type and user_id
+	pongM := map[string]*header.MessagePong{}
+	for _, pong := range msg.Pongs {
+		pongM[pong.GetMemberId()+pong.GetType()+pong.GetEmoticon()] = pong
+	}
+
+	pongs := []*header.MessagePong{}
+	for _, pong := range pongM {
+		pongs = append(pongs, pong)
+	}
+	sort.Slice(pongs, func(i, j int) bool {
+		return pongs[i].Created < pongs[j].Created
+	})
+	msg.Pongs = pongs
 }
 
 func (me *ConvoMgr) GetFullConversation(ctx context.Context, id *header.Id) (*header.Response, error) {
