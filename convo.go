@@ -223,7 +223,7 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 	}
 
 	if e.GetType() == "message_pong" {
-		me.handlePong(accid, convoid, e.GetData().GetMessage().GetId(), e.GetData().GetMessage().GetPongs())
+		me.handlePong(accid, convoid, e.GetData().GetMessage().GetId(), e.GetBy().GetId(), e.GetData().GetMessage().GetPongs())
 	}
 
 	if e.GetType() == "message_sent" {
@@ -239,10 +239,9 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 	return e, nil
 }
 
-func (me *ConvoMgr) handlePong(accid, convoid, msgid string, newpongs []*header.MessagePong) {
+func (me *ConvoMgr) handlePong(accid, convoid, msgid, byid string, newpongs []*header.MessagePong) {
 	convomessages := me.messages[accid]
 	if convomessages == nil {
-		panic(1)
 		return
 	}
 
@@ -255,7 +254,16 @@ func (me *ConvoMgr) handlePong(accid, convoid, msgid string, newpongs []*header.
 	if msg == nil {
 		return
 	}
-	msg.Pongs = append(msg.Pongs, newpongs...)
+	if len(newpongs) == 0 {
+		return
+	}
+
+	for _, pong := range newpongs {
+		pong.Created = time.Now().UnixMilli()
+		pong.MemberId = byid
+		msg.Pongs = append(msg.Pongs, pong)
+	}
+
 	// group by type and user_id
 	pongM := map[string]*header.MessagePong{}
 	for _, pong := range msg.Pongs {
