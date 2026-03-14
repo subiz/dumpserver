@@ -12,11 +12,14 @@ import (
 	"github.com/subiz/goutils/conv"
 	"github.com/subiz/header"
 	apb "github.com/subiz/header/account"
+	cpb "github.com/subiz/header/common"
+	ppb "github.com/subiz/header/payment"
 	"google.golang.org/protobuf/proto"
 )
 
 type AccountMgr struct {
 	header.UnimplementedAccountMgrServer
+	header.UnimplementedPaymentMgrServer
 	session *gocql.Session
 }
 
@@ -90,6 +93,36 @@ func (mgr *AccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Acc
 	return &apb.Account{Name: conv.S("SubizTest"), Id: conv.S(req.GetAccountId()), Currency: conv.S("VND"), State: conv.S("activated")}, nil
 }
 
+func (mgr *AccountMgr) GetSubscription(ctx context.Context, req *header.Id) (*ppb.Subscription, error) {
+	t := uint32(12)
+	return &ppb.Subscription{
+		AccountId:              conv.S(req.GetId()),
+		Plan:                   conv.S("advanced_unlimited_agent"),
+		BillingCycleMonth:      &t,
+		Started:                conv.PI64(int(time.Now().UnixMilli() - 86400000)),
+		Ended:                  conv.PI64(int(time.Now().UnixMilli() + 465*86400000)),
+		FpvCreditUsd:           conv.PI64(int(9201411625030429000)),
+		FpvMarketingBalanceVnd: conv.PI64(int(9201411625030429000)),
+		FpvNovatBalanceUsd:     conv.PI64(int(9201411625030429000)),
+		Limit: &cpb.Limit{
+			MaxZaloPersonals:    3,
+			UseZaloPersonals:    1,
+			MaxZaloOas:          1000,
+			MaxFanpages:         1000,
+			MaxTiktoks:          1000,
+			MaxInstagrams:       1000,
+			MaxGoogleBusinesses: 1000,
+			UseTicket:           1,
+			MaxAgents:           1000,
+			MaxSegments:         1000,
+			MaxAutomations:      10000,
+			UseAutomation:       1,
+			UseChatbotAi:        1,
+		},
+	}, nil
+
+}
+
 func (mgr *AccountMgr) ListActiveAccountIds(ctx context.Context, req *header.Id) (*header.Response, error) {
 	return &header.Response{Ids: []string{"acpxkgumifuoofoosble"}}, nil
 }
@@ -146,6 +179,7 @@ func NewAccountMgr(port int) *AccountMgr {
 	mgr.session = header.ConnectDB([]string{"db-0"}, "account")
 	grpcServer := header.NewShardServer2(port, 1)
 	header.RegisterAccountMgrServer(grpcServer, mgr)
+	header.RegisterPaymentMgrServer(grpcServer, mgr)
 	lis, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
 	if err != nil {
 		panic(err)
