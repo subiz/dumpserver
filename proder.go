@@ -7,6 +7,7 @@ import (
 	"net"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -135,7 +136,7 @@ func (me *ProderMgr) ListAllProductIds(ctx context.Context, req *header.Products
 	for _, p := range me.productM {
 		out = append(out, p)
 	}
-	str := ""
+	var str strings.Builder
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].Id < out[j].Id
 	})
@@ -143,11 +144,11 @@ func (me *ProderMgr) ListAllProductIds(ctx context.Context, req *header.Products
 	ids := []string{}
 	modifieds := []int64{}
 	for _, p := range out {
-		str += p.Id + "." + strconv.Itoa(int(p.Modified)) + "\n"
+		str.WriteString(p.Id + "." + strconv.Itoa(int(p.Modified)) + "\n")
 		ids = append(ids, p.Id)
 		modifieds = append(modifieds, p.Modified)
 	}
-	etag := fmt.Sprintf("%x", md5.Sum([]byte(str)))
+	etag := fmt.Sprintf("%x", md5.Sum([]byte(str.String())))
 	if etag == req.ETag {
 		return &header.Ids{ETag: etag}, nil
 	}
@@ -159,7 +160,7 @@ func (me *ProderMgr) ListAllProductDiscountIds(ctx context.Context, req *header.
 	for _, p := range me.discountM {
 		out = append(out, p)
 	}
-	str := ""
+	var str strings.Builder
 	sort.Slice(out, func(i, j int) bool {
 		return out[i].Id < out[j].Id
 	})
@@ -167,11 +168,11 @@ func (me *ProderMgr) ListAllProductDiscountIds(ctx context.Context, req *header.
 	ids := []string{}
 	modifieds := []int64{}
 	for _, p := range out {
-		str += p.Id + "." + strconv.Itoa(int(p.Updated)) + "\n"
+		str.WriteString(p.Id + "." + strconv.Itoa(int(p.Updated)) + "\n")
 		ids = append(ids, p.Id)
 		modifieds = append(modifieds, p.Updated)
 	}
-	etag := fmt.Sprintf("%x", md5.Sum([]byte(str)))
+	etag := fmt.Sprintf("%x", md5.Sum([]byte(str.String())))
 	if etag == req.ETag {
 		return &header.Ids{ETag: etag}, nil
 	}

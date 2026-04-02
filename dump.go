@@ -90,7 +90,13 @@ func (mgr *AccountMgr) ListAgents(ctx context.Context, req *header.Id) (*header.
 }
 
 func (mgr *AccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Account, error) {
-	return &apb.Account{Name: conv.S("SubizTest"), Id: conv.S(req.GetAccountId()), Currency: conv.S("VND"), State: conv.S("activated")}, nil
+	return &apb.Account{
+		Name:     conv.S("SubizTest"),
+		Id:       conv.S(req.GetAccountId()),
+		Currency: conv.S("VND"),
+		State:    conv.S("activated"),
+		Timezone: conv.S("+07:00"),
+	}, nil
 }
 
 func (mgr *AccountMgr) GetSubscription(ctx context.Context, req *header.Id) (*ppb.Subscription, error) {

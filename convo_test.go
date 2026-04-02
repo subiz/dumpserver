@@ -36,7 +36,7 @@ func TestPong(t *testing.T) {
 	})
 
 	out, _ := convomgr.ListEvents(context.Background(), &header.ListConversationEventsRequest{AccountId: accid, ConversationId: convoid})
-	if len(out.GetEvents() != 1) {
+	if len(out.GetEvents()) != 1 {
 		t.Errorf("should be 1, got %d", len(out.GetEvents()))
 	}
 }
