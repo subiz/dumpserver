@@ -18,6 +18,14 @@ type PubsubMgr struct {
 	lock *sync.Mutex
 }
 
+func (me *PubsubMgr) ShortenLink(ctx context.Context, p *header.Link) (*header.String, error) {
+	return &header.String{Str: p.GetUrl()}, nil // just dummy
+}
+
+func (me *PubsubMgr) LookupLink(ctx context.Context, p *header.String) (*header.Link, error) {
+	return &header.Link{Url: p.GetStr()}, nil // just dummy
+}
+
 func (mgr *PubsubMgr) IsSubscribed(ctx context.Context, p *header.PsMessage) (*header.Id, error) {
 	return &header.Id{}, nil
 }
