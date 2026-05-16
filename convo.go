@@ -106,7 +106,7 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 		if e.GetData().GetMessage().GetText() == "" {
 			m := map[string]string{}
 			header.CompileBlock(e.Data.Message.Block, m)
-			e.Data.Message.Text = header.BlockToPlainText(e.Data.Message.Block)
+			e.Data.Message.Text = header.BlockToText(e.Data.Message.Block)
 			e.Data.Message.Plaintext = e.Data.Message.Text
 		}
 	}

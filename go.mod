@@ -5,10 +5,10 @@ go 1.26.3
 require (
 	github.com/gocql/gocql v1.7.0
 	github.com/subiz/goutils v0.1.28
-	github.com/subiz/header v1.28.27
+	github.com/subiz/header v1.28.33
 	github.com/subiz/idgen v0.1.41
 	github.com/subiz/log v1.0.23
-	google.golang.org/grpc v1.81.0
+	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
 )
 
