@@ -23,7 +23,11 @@ func (me *PubsubMgr) ShortenLink(ctx context.Context, p *header.Link) (*header.S
 }
 
 func (me *PubsubMgr) LookupLink(ctx context.Context, p *header.String) (*header.Link, error) {
-	return &header.Link{Url: p.GetStr()}, nil // just dummy
+	url := p.GetStr()
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "https://a.sbz.vn/" + url
+	}
+	return &header.Link{Url: url}, nil // just dummy
 }
 
 func (mgr *PubsubMgr) IsSubscribed(ctx context.Context, p *header.PsMessage) (*header.Id, error) {

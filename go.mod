@@ -5,7 +5,7 @@ go 1.26.3
 require (
 	github.com/gocql/gocql v1.7.0
 	github.com/subiz/goutils v0.1.28
-	github.com/subiz/header v1.28.33
+	github.com/subiz/header v1.28.34
 	github.com/subiz/idgen v0.1.41
 	github.com/subiz/log v1.0.23
 	google.golang.org/grpc v1.81.1
@@ -49,7 +49,7 @@ require (
 	golang.org/x/net v0.54.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20260511170946-3700d4141b60 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20260511170946-3700d4141b60 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20260519071638-aa98bba5eb94 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260519071638-aa98bba5eb94 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 )
