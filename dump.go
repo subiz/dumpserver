@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gocql/gocql"
-	"github.com/subiz/goutils/conv"
 	"github.com/subiz/header"
 	apb "github.com/subiz/header/account"
 	cpb "github.com/subiz/header/common"
@@ -80,36 +79,43 @@ func (mgr *AccountMgr) CreateGroup(ctx context.Context, req *header.AgentGroup) 
 }
 
 func (mgr *AccountMgr) ListAgents(ctx context.Context, req *header.Id) (*header.Response, error) {
-	agent := &apb.Agent{
+	agent1 := &apb.Agent{
 		AccountId: &req.AccountId,
-		Email:     conv.S("agent@subiz.com"),
-		Id:        conv.S("ag1"),
-		State:     conv.S("active"),
+		Email:     new("agent@subiz.com"),
+		Id:        new("ag1"),
+		State:     new("active"),
 	}
-	return &header.Response{Agents: []*apb.Agent{agent}, Total: 1}, nil
+
+	agent2 := &apb.Agent{
+		AccountId: &req.AccountId,
+		Email:     new("agent2@subiz.com"),
+		Id:        new("ag2"),
+		State:     new("active"),
+	}
+	return &header.Response{Agents: []*apb.Agent{agent1, agent2}, Total: 2}, nil
 }
 
 func (mgr *AccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Account, error) {
 	return &apb.Account{
-		Name:     conv.S("SubizTest"),
-		Id:       conv.S(req.GetAccountId()),
-		Currency: conv.S("VND"),
-		State:    conv.S("activated"),
-		Timezone: conv.S("+07:00"),
+		Name:     new("SubizTest"),
+		Id:       new(req.GetAccountId()),
+		Currency: new("VND"),
+		State:    new("activated"),
+		Timezone: new("+07:00"),
 	}, nil
 }
 
 func (mgr *AccountMgr) GetSubscription(ctx context.Context, req *header.Id) (*ppb.Subscription, error) {
 	t := uint32(12)
 	return &ppb.Subscription{
-		AccountId:              conv.S(req.GetId()),
-		Plan:                   conv.S("advanced_unlimited_agent"),
+		AccountId:              new(req.GetId()),
+		Plan:                   new("advanced_unlimited_agent"),
 		BillingCycleMonth:      &t,
-		Started:                conv.PI64(int(time.Now().UnixMilli() - 86400000)),
-		Ended:                  conv.PI64(int(time.Now().UnixMilli() + 465*86400000)),
-		FpvCreditUsd:           conv.PI64(int(9201411625030429000)),
-		FpvMarketingBalanceVnd: conv.PI64(int(9201411625030429000)),
-		FpvNovatBalanceUsd:     conv.PI64(int(9201411625030429000)),
+		Started:                new(int64(time.Now().UnixMilli() - 86400000)),
+		Ended:                  new(int64(time.Now().UnixMilli() + 465*86400000)),
+		FpvCreditUsd:           new(int64(9201411625030429000)),
+		FpvMarketingBalanceVnd: new(int64(9201411625030429000)),
+		FpvNovatBalanceUsd:     new(int64(9201411625030429000)),
 		Limit: &cpb.Limit{
 			MaxZaloPersonals:    3,
 			UseZaloPersonals:    1,
