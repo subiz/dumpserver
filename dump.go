@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/gocql/gocql"
@@ -20,6 +21,41 @@ type AccountMgr struct {
 	header.UnimplementedAccountMgrServer
 	header.UnimplementedPaymentMgrServer
 	session *gocql.Session
+}
+
+var (
+	dumpAccountMu sync.RWMutex
+	dumpAccount   = defaultDumpAccount()
+)
+
+func defaultDumpAccount() *apb.Account {
+	return &apb.Account{
+		Name:     new("SubizTest"),
+		Currency: new("VND"),
+		State:    new("activated"),
+		Timezone: new("+07:00"),
+		BusinessHours: &apb.BusinessHours{
+			WorkingDays: []*apb.BusinessHours_WorkingDay{
+				{Weekday: new("Monday"), StartTime: new("08:00"), EndTime: new("12:00")},
+				{Weekday: new("Monday"), StartTime: new("13:00"), EndTime: new("17:00")},
+				{Weekday: new("Tuesday"), StartTime: new("08:00"), EndTime: new("12:00")},
+				{Weekday: new("Tuesday"), StartTime: new("13:00"), EndTime: new("17:00")},
+				{Weekday: new("Wednesday"), StartTime: new("08:00"), EndTime: new("12:00")},
+				{Weekday: new("Wednesday"), StartTime: new("13:00"), EndTime: new("17:00")},
+				{Weekday: new("Thursday"), StartTime: new("08:00"), EndTime: new("12:00")},
+				{Weekday: new("Thursday"), StartTime: new("13:00"), EndTime: new("17:00")},
+				{Weekday: new("Friday"), StartTime: new("08:00"), EndTime: new("12:00")},
+				{Weekday: new("Friday"), StartTime: new("13:00"), EndTime: new("17:00")},
+				{Weekday: new("Saturday"), StartTime: new("08:00"), EndTime: new("12:00")},
+				{Weekday: new("Saturday"), StartTime: new("13:00"), EndTime: new("17:00")},
+			},
+			Holidays: []*apb.BusinessHours_Holiday{
+				{Year: new(int32(2026)), Month: new(int32(5)), Day: new(int32(1)), Name: new("1/5")},
+				{Year: new(int32(2026)), Month: new(int32(4)), Day: new(int32(30)), Name: new("30/4")},
+				{Year: new(int32(2026)), Month: new(int32(4)), Day: new(int32(27)), Name: new("giổ tổ hùng vương")},
+			},
+		},
+	}
 }
 
 func (mgr *AccountMgr) InviteEmails(ctx context.Context, req *header.InviteRequest) (*header.Empty, error) {
@@ -96,13 +132,12 @@ func (mgr *AccountMgr) ListAgents(ctx context.Context, req *header.Id) (*header.
 }
 
 func (mgr *AccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Account, error) {
-	return &apb.Account{
-		Name:     new("SubizTest"),
-		Id:       new(req.GetAccountId()),
-		Currency: new("VND"),
-		State:    new("activated"),
-		Timezone: new("+07:00"),
-	}, nil
+	dumpAccountMu.RLock()
+	acc := proto.Clone(dumpAccount).(*apb.Account)
+	dumpAccountMu.RUnlock()
+
+	acc.Id = new(req.GetAccountId())
+	return acc, nil
 }
 
 func (mgr *AccountMgr) GetSubscription(ctx context.Context, req *header.Id) (*ppb.Subscription, error) {
@@ -141,14 +176,9 @@ func (mgr *AccountMgr) ListActiveAccountIds(ctx context.Context, req *header.Id)
 
 // UpsertAccount update account
 func (mgr *AccountMgr) UpsertAccount(acc *apb.Account) {
-	bh, _ := proto.Marshal(acc.GetBusinessHours())
-	ls, _ := proto.Marshal(acc.GetLeadSetting())
-	ii, _ := proto.Marshal(acc.GetInvoiceInfo())
-
-	err := mgr.session.Query("INSERT INTO account.accounts(id, address, business_hours,city, country, created,date_format, facebook, lang, lead_setting, locale, logo_url, logo_url_128, modified, name, owner_id, phone, referrer_from,  state, supported_locales, timezone, twitter, url, zip_code, currency, currency_locked, login_locked, deleted_by_agent, invoice_info,primary_payment_method) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", acc.GetId(), acc.GetAddress(), bh, acc.GetCity(), acc.GetCountry(), acc.GetCreated(), acc.GetDateFormat(), acc.GetFacebook(), acc.GetLang(), ls, acc.GetLocale(), acc.GetLogoUrl(), acc.GetLogoUrl_128(), acc.GetModified(), acc.GetName(), acc.GetOwnerId(), acc.GetPhone(), acc.GetReferrerFrom(), acc.GetState(), acc.GetSupportedLocales(), acc.GetTimezone(), acc.GetTwitter(), acc.GetUrl(), acc.GetZipCode(), acc.GetCurrency(), acc.GetCurrencyLocked(), acc.GetLoginLocked(), acc.GetDeletedByAgent(), ii, acc.GetPrimaryPaymentMethod()).Exec()
-	if err != nil {
-		panic(err)
-	}
+	dumpAccountMu.Lock()
+	dumpAccount = proto.Clone(acc).(*apb.Account)
+	dumpAccountMu.Unlock()
 }
 
 func (me *AccountMgr) NewID(ctx context.Context, p *header.Id) (*header.Id, error) {
