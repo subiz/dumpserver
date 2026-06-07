@@ -1,10 +1,10 @@
 module github.com/subiz/dumpserver
 
-go 1.26.3
+go 1.26.4
 
 require (
 	github.com/gocql/gocql v1.7.0
-	github.com/subiz/header v1.28.41
+	github.com/subiz/header v1.28.42
 	github.com/subiz/idgen v0.1.41
 	github.com/subiz/log v1.0.23
 	google.golang.org/grpc v1.81.1
@@ -44,7 +44,6 @@ require (
 	go.opentelemetry.io/otel/sdk/log v0.20.0 // indirect
 	go.opentelemetry.io/otel/trace v1.44.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.10.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

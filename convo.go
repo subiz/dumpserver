@@ -226,7 +226,7 @@ func (me *ConvoMgr) SendMessage(ctx context.Context, e *header.Event) (*header.E
 		me.handlePong(accid, convoid, e.GetData().GetMessage().GetId(), e.GetBy().GetId(), e.GetData().GetMessage().GetPongs())
 	}
 
-	if e.GetType() == "message_sent" {
+	if e.GetType() == "message_sent" || e.GetType() == "llm_tool_called" {
 		convomsgs[e.Id] = e
 	}
 	cloneE := proto.Clone(e).(*header.Event)
