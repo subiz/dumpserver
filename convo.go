@@ -57,6 +57,52 @@ func (me *ConvoMgr) ListEvents(ctx context.Context, req *header.ListConversation
 	return &header.Events{Events: events}, nil
 }
 
+func (me *ConvoMgr) ListConversations(ctx context.Context, req *header.ListConversationsRequest) (*header.Conversations, error) {
+	me.lock.Lock()
+	defer me.lock.Unlock()
+
+	userid := req.GetUserId()
+	conversations := make([]*header.Conversation, 0)
+	for _, convo := range me.convos[req.GetAccountId()] {
+		if userid != "" {
+			found := false
+			for _, member := range convo.GetMembers() {
+				if member.GetId() == userid {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+
+		conversations = append(conversations, proto.Clone(convo).(*header.Conversation))
+	}
+
+	// Conversation IDs are time-sortable in production, so return the newest
+	// conversations first and keep the result deterministic for the dump server.
+	sort.Slice(conversations, func(i, j int) bool {
+		return conversations[i].GetId() > conversations[j].GetId()
+	})
+
+	limit := int(req.GetLimit())
+	if limit == 0 {
+		limit = 20
+	}
+	if limit < 0 {
+		limit = -limit
+	}
+	if limit > 200 {
+		limit = 200
+	}
+	if len(conversations) > limit {
+		conversations = conversations[:limit]
+	}
+
+	return &header.Conversations{Conversations: conversations}, nil
+}
+
 func (me *ConvoMgr) WaitForMessage(accid, convoid, lastid string, timeoutms int64) *header.Event {
 	if timeoutms == 0 {
 		timeoutms = 30_000 // 30 sec

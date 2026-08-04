@@ -110,8 +110,6 @@ func (me *Crawler) Crawl(ctx context.Context, in *header.CrawlUrlRequest) (*head
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "yaak")
-	req.Header.Set("Accept", "*/*")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
