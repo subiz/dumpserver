@@ -28,18 +28,6 @@ func (me *FabikonMgr) UpsertFacebookPost(ctx context.Context, req *header.Facebo
 	return &header.Response{}, nil
 }
 
-func (me *FabikonMgr) ReadFbFanpageSetting(ctx context.Context, req *header.Id) (*header.FbFanpageSetting, error) {
-	return &header.FbFanpageSetting{}, nil
-}
-
-func (me *FabikonMgr) UpdateFbFanpageSetting(ctx context.Context, req *header.FbFanpageSetting) (*header.FbFanpageSetting, error) {
-	return &header.FbFanpageSetting{}, nil
-}
-
-func (me *FabikonMgr) ListFbFanpageSettings(ctx context.Context, req *header.Id) (*header.FbFanpageSettings, error) {
-	return &header.FbFanpageSettings{}, nil
-}
-
 func (me *FabikonMgr) ListFacebookPosts(ctx context.Context, req *header.FacebookPostRequest) (*header.Response, error) {
 	return &header.Response{}, nil
 }
