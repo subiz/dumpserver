@@ -13,7 +13,6 @@ import (
 	"github.com/subiz/header"
 	apb "github.com/subiz/header/account"
 	cpb "github.com/subiz/header/common"
-	ppb "github.com/subiz/header/payment"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -140,9 +139,9 @@ func (mgr *AccountMgr) GetAccount(ctx context.Context, req *header.Id) (*apb.Acc
 	return acc, nil
 }
 
-func (mgr *AccountMgr) GetSubscription(ctx context.Context, req *header.Id) (*ppb.Subscription, error) {
+func (mgr *AccountMgr) GetSubscription(ctx context.Context, req *header.Id) (*apb.Subscription, error) {
 	t := uint32(12)
-	return &ppb.Subscription{
+	return &apb.Subscription{
 		AccountId:              new(req.GetId()),
 		Plan:                   new("advanced_unlimited_agent"),
 		BillingCycleMonth:      &t,
