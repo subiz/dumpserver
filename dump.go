@@ -215,9 +215,14 @@ func (me *AccountMgr) NewID(ctx context.Context, p *header.Id) (*header.Id, erro
 	return &header.Id{Id: strconv.Itoa(int(id))}, nil
 }
 
-func NewAccountMgr(port int) *AccountMgr {
+// NewAccountMgr starts the mock account service. An optional Cassandra host
+// lets local tests use an IP directly, avoiding hostname resolution delays.
+func NewAccountMgr(port int, dbHosts ...string) *AccountMgr {
+	if len(dbHosts) == 0 {
+		dbHosts = []string{"db-0"}
+	}
 	mgr := &AccountMgr{}
-	mgr.session = header.ConnectDB([]string{"db-0"}, "account")
+	mgr.session = header.ConnectDB(dbHosts, "account")
 	grpcServer := header.NewShardServer2(port, 1)
 	header.RegisterAccountMgrServer(grpcServer, mgr)
 	header.RegisterPaymentMgrServer(grpcServer, mgr)
