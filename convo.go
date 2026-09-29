@@ -25,6 +25,15 @@ type ConvoMgr struct {
 	OnEvent  func(ev *header.Event)
 }
 
+// ResetAccount isolates test cases that reuse the same account and touchpoints.
+// Keep the event counter and callback: previously issued IDs must not be reused.
+func (me *ConvoMgr) ResetAccount(accid string) {
+	me.lock.Lock()
+	defer me.lock.Unlock()
+	delete(me.messages, accid)
+	delete(me.convos, accid)
+}
+
 func (me *ConvoMgr) OnAIAgentUpdated(ctx context.Context, req *header.AIAgent) (*header.Response, error) {
 	return &header.Response{}, nil
 }
